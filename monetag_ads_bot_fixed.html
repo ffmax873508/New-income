@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Monetag Ads Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src='//libtl.com/sdk.js' data-zone='11763397' data-sdk='show_11763397'></script>
+
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --accent-purple: linear-gradient(135deg, #a855f7, #6366f1);
+            --accent-blue: linear-gradient(135deg, #06b6d4, #3b82f6);
+            --accent-green: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90vh;
+            user-select: none;
+        }
+
+        .stats-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            margin-bottom: 25px;
+        }
+
+        .stats-title {
+            font-size: 14px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .stats-count {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(to right, #4ade80, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 5px 0;
+        }
+
+        .btn-group {
+            width: 100%;
+            max-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            border: none;
+            outline: none;
+            color: #ffffff;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-1 { background: var(--accent-purple); }
+        .btn-2 { background: var(--accent-blue); }
+        .btn-auto { background: var(--accent-green); }
+
+        .btn-auto.active {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stats-card">
+        <p class="stats-title">মোট দেখা বিজ্ঞাপন</p>
+        <div class="stats-count" id="adCounter">0</div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-1" onclick="triggerAd(1)">
+            <span>🚀 Show Ad 1</span>
+        </button>
+
+        <button class="btn btn-2" onclick="triggerAd(2)">
+            <span>💎 Show Ad 2</span>
+        </button>
+
+        <button class="btn btn-auto" id="autoBtn" onclick="toggleAutoAd()">
+            <span>⚡ Auto Ad Show (OFF)</span>
+        </button>
+    </div>
+
+    <script>
+        // Telegram SDK intentionally not loaded here.
+        // This keeps the page compatible with normal browsers/HTML previewers
+        // and avoids CloudStorage errors on Telegram WebApp version 6.0.
+        const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+        try { if (tg && typeof tg.expand === 'function') tg.expand(); } catch (e) {}
+
+        let adCount = 0;
+        let isAutoRunning = false;
+        let autoInterval = null;
+
+        function incrementCounter() {
+            adCount++;
+            document.getElementById('adCounter').innerText = adCount;
+
+            try {
+                if (tg && tg.HapticFeedback &&
+                    typeof tg.HapticFeedback.notificationOccurred === 'function') {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+            } catch (e) {}
+        }
+
+        function triggerAd(type) {
+            if (typeof show_11763397 === 'function') {
+                show_11763397().then(() => {
+                    incrementCounter();
+                }).catch(() => {
+                    incrementCounter();
+                });
+            } else {
+                alert("Ad is loading... Please try again!");
+            }
+        }
+
+        function toggleAutoAd() {
+            const autoBtn = document.getElementById('autoBtn');
+
+            if (!isAutoRunning) {
+                isAutoRunning = true;
+                autoBtn.classList.add('active');
+                autoBtn.innerHTML = "<span>🛑 Stop Auto Ad</span>";
+
+                runAutoAd();
+
+                autoInterval = setInterval(() => {
+                    runAutoAd();
+                }, 8000);
+
+            } else {
+                isAutoRunning = false;
+                autoBtn.classList.remove('active');
+                autoBtn.innerHTML = "<span>⚡ Auto Ad Show (OFF)</span>";
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+        }
+
+        function runAutoAd() {
+            if (typeof show_11763397 === 'function') {
+                show_11763397().then(() => {
+                    incrementCounter();
+                }).catch(() => {
+                    incrementCounter();
+                });
+            }
+        }
+    </script>
+</body>
+</html>
